@@ -1,7 +1,7 @@
 const{network, ethers}=require("hardhat");
 const{developmentChains, networkConfig}=require("../helper-hardhat-config");
 const{verify}=require("../utils/verify");
-const {storeImages, storeUri}=require("../utils/uploadToPinata");
+const{storeImages, storeUri}=require("../utils/uploadToPinata");
 
 const imglocation="./images";
 
@@ -38,14 +38,14 @@ module.exports=async({getNamedAccounts, deployments})=>{
 
         const mock= await contracts.deploy(BASE_FEE, GAS_PRICE_LINK);
 
-        chainlinkAddress= await mock.address;
+        chainlinkAddress= mock.address;
         const tx=await mock.createSubscription();
         const receipt=await tx.wait(1);
         subIds=receipt.events[0].args.subId;
     }else{
         chainlinkAddress=await networkConfig[chainIds].vrfCoordinatorV2;
 
-        subIds= networkConfig[chainIds]. subscriptionId;
+        subIds= networkConfig[chainIds].subscriptionId;
     }
 
     log("________________________________");
@@ -58,28 +58,26 @@ module.exports=async({getNamedAccounts, deployments})=>{
     //     networkConfig[chainIds].mintFee,
     //     networkConfig[chainIds].callbackGasLimit
     // ]
+}
 
-    async function handleTokenUris(){
-        tokenUris=[];
+async function handleTokenUris(){
+    tokenUris=[];
 
-        const{responses: imgResponses, files}=await storeImages(imglocation);
-        for(i in imgResponses){
-            let tokenMetadata={...metadataTemplate};
-            tokenMetadata.name=files[i].replace(".png", "");
-            tokenMetadata.description=`An cute ${tokenMetadata.name} pup`;
-            tokenMetadata.image=`ipfs://${imgResponses[i].IpfsHash}`;
+    const{responses: imgResponses, files}=await storeImages(imglocation);
+    for(i in imgResponses){
+        let tokenMetadata={...metadataTemplate};
+        tokenMetadata.name=files[i].replace(".png", "");
+        tokenMetadata.description=`An cute ${tokenMetadata.name} pup`;
+        tokenMetadata.image=`ipfs://${imgResponses[i].IpfsHash}`;
 
-            console.log(`Uploading to IPFS ${tokenMetadata.name}`);
+        console.log(`Uploading to IPFS ${tokenMetadata.name}`);
 
-            const uploadResponse=await storeUri(tokenMetadata);
-            tokenUris.push(`ipfs://${uploadResponse.IpfsHash}`);
-        }
-        console.log(`Token uris uploaded they are:`);
-        console.log(tokenUris);
-        return tokenUris;
+        const uploadResponse=await storeUri(tokenMetadata);
+        tokenUris.push(`ipfs://${uploadResponse.IpfsHash}`);
     }
-
-    
+    console.log(`Token uris uploaded they are:`);
+    console.log(tokenUris);
+    return tokenUris;
 }
 
 module.exports.tags=["all", "random"];
