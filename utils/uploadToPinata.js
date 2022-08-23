@@ -25,7 +25,7 @@ async function storeImages(imgPath){
             console.log(e);
         }
     }
-    return(responses, files);
+    return{responses, files};
 }
 
 async function storeUri(metadata){
